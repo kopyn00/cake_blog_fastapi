@@ -21,8 +21,8 @@ class User(Base):
     )
 
     posts: Mapped[list[Post]] = relationship(
-        back_populates="author", 
-        cascade="all, delete-orphan", # make sure that delete all posts of user
+        back_populates="author",
+        cascade="all, delete-orphan",  # make sure that delete all posts of user
     )
 
     @property
