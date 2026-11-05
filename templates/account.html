@@ -50,10 +50,11 @@
         <div class="mb-4">
           <h5>Profile Picture</h5>
           <!-- Preview container -->  
-          <div class="mb-3 cropper-container">
-              <img id="imagePreview"
-                   class="d-none"
-                   alt="Image preview">
+          <div id="cropperWrapper" class="mb-3 image-crop-wrapper d-none">
+              <img
+                  id="imagePreview"
+                  alt="Image preview"
+              >
           </div>
           <!-- File input and upload button -->
           <div class="d-flex gap-2 align-items-start">
@@ -168,6 +169,7 @@
   const pictureInput = document.getElementById('pictureInput');
   const imagePreview = document.getElementById('imagePreview');
   const uploadBtn = document.getElementById('uploadPictureBtn');
+  const cropperWrapper = document.getElementById('cropperWrapper');
   
   let cropper = null;
   
@@ -184,15 +186,15 @@
           uploadBtn.disabled = true;
           return;
       }
-    
+
+      cropperWrapper.classList.remove('d-none');
       imagePreview.src = URL.createObjectURL(file);
-      imagePreview.classList.remove('d-none');
     
       cropper = new Cropper(imagePreview, {
           aspectRatio: 1,
           viewMode: 1,
           dragMode: 'move',
-          autoCropArea: 0.8,
+          autoCropArea: 0.9,
           responsive: true,
           zoomable: true,
           movable: true,
@@ -270,7 +272,7 @@
         }
 
         pictureInput.value = '';
-        imagePreview.classList.add('d-none');
+        cropperWrapper.classList.add('d-none');
 
         document.getElementById('successMessage').textContent =
           'Profile picture updated successfully!';
