@@ -1,0 +1,12 @@
+[project]
+name = "cake-blog"
+version = "0.1.0"
+requires-python = ">=3.14"
+dependencies = [
+    "aiosqlite>=0.22.1",
+    "argon2-cffi>=25.1.0",
+    "fastapi[standard]>=0.162.0",
+    "pwdlib>=0.3.1",
+    "pyjwt>=2.15.1",
+    "sqlalchemy[asyncio]>=2.1.8",
+]
