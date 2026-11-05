@@ -326,3 +326,13 @@ a.article-title:focus {
   color: #59483f;
   border-color: #d8c9bc;
 }
+
+.cropper-container {
+    max-width: 500px;
+    height: 400px;
+}
+
+.cropper-container img {
+    display: block;
+    max-width: 100%;
+}

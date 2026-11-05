@@ -1,4 +1,13 @@
 {% extends "layout.html" %}
+
+{% block styles %}
+    {{ super() }}
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css"
+    >
+{% endblock styles %}
+
 {% block content %}
     <div class="content-section py-3 px-4 mb-4">
         <h2 class="mb-4">Account Settings</h2>
@@ -37,11 +46,24 @@
             </form>
         </div>
         <hr>
-        <!-- Profile Picture Section (Placeholder) -->
+        <!-- Profile Picture Section -->
         <div class="mb-4">
-            <h5>Profile Picture</h5>
-            <p class="text-body-secondary">File upload coming in a future tutorial.</p>
-            <input type="file" class="form-control" disabled>
+          <h5>Profile Picture</h5>
+          <!-- Preview container -->  
+          <div class="mb-3 cropper-container">
+              <img id="imagePreview"
+                   class="d-none"
+                   alt="Image preview">
+          </div>
+          <!-- File input and upload button -->
+          <div class="d-flex gap-2 align-items-start">
+            <input type="file"
+                   class="form-control file-input-sm"
+                   id="pictureInput"
+                   accept="image/*">
+            <button type="button" class="btn btn-primary" id="uploadPictureBtn" disabled>Upload</button>
+          </div>
+          <small class="text-body-secondary">Maximum file size: 5MB. Supported formats: JPEG, PNG, GIF, WebP.</small>
         </div>
         <hr>
         <!-- Password Reset Section (Placeholder) -->
@@ -113,6 +135,7 @@
     </div>
 {% endblock content %}
 {% block scripts %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
     <script type="module">
   import { getCurrentUser, getToken, logout, clearUserCache } from '/static/js/auth.js';
   import { getErrorMessage, showModal, hideModal } from '/static/js/utils.js';
@@ -140,6 +163,133 @@
     document.getElementById('username').value = user.username;
     document.getElementById('email').value = user.email;
   }
+
+  // Image Preview Handler
+  const pictureInput = document.getElementById('pictureInput');
+  const imagePreview = document.getElementById('imagePreview');
+  const uploadBtn = document.getElementById('uploadPictureBtn');
+  
+  let cropper = null;
+  
+  pictureInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+  
+      if (cropper) {
+          cropper.destroy();
+          cropper = null;
+      }
+    
+      if (!file) {
+          imagePreview.classList.add('d-none');
+          uploadBtn.disabled = true;
+          return;
+      }
+    
+      imagePreview.src = URL.createObjectURL(file);
+      imagePreview.classList.remove('d-none');
+    
+      cropper = new Cropper(imagePreview, {
+          aspectRatio: 1,
+          viewMode: 1,
+          dragMode: 'move',
+          autoCropArea: 0.8,
+          responsive: true,
+          zoomable: true,
+          movable: true,
+      });
+    
+      uploadBtn.disabled = false;
+  });
+
+  // Upload Profile Picture Handler
+  uploadBtn.addEventListener('click', async () => {
+    const token = getToken();
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
+
+    uploadBtn.disabled = true;
+    uploadBtn.textContent = 'Uploading...';
+
+    try {
+      if (!cropper) {
+        return;
+      }
+    
+      const canvas = cropper.getCroppedCanvas({
+          width: 512,
+          height: 512,
+          imageSmoothingQuality: 'high',
+      });
+      if (!canvas) {
+          throw new Error('Failed to create cropped image');
+      }
+    
+      const blob = await new Promise(resolve => {
+          canvas.toBlob(resolve, 'image/jpeg', 0.90);
+      });
+    
+      if (!blob) {
+          throw new Error('Failed to crop image');
+      }
+    
+      const formData = new FormData();
+      formData.append('file', blob, 'profile.jpg');
+      const response = await fetch(`/api/users/${currentUserId}/picture`, {
+        method: 'PATCH',
+        headers: {
+          // Don't set Content-Type — browser sets multipart boundary automatically
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (response.status === 401) {
+        window.location.href = '/login';
+        return;
+      }
+
+      if (response.status === 403) {
+        document.getElementById('errorMessage').textContent =
+          'You are not authorized to update this profile picture.';
+        showModal('errorModal');
+        return;
+      }
+
+      if (response.ok) {
+        const data = await response.json();
+
+        clearUserCache();
+
+        document.getElementById('profileImage').src = data.image_path;
+
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+
+        pictureInput.value = '';
+        imagePreview.classList.add('d-none');
+
+        document.getElementById('successMessage').textContent =
+          'Profile picture updated successfully!';
+        showModal('successModal');
+      } else {
+        const error = await response.json();
+        document.getElementById('errorMessage').textContent = getErrorMessage(error);
+        showModal('errorModal');
+      }
+    } catch (error) {
+      document.getElementById('errorMessage').textContent =
+        'Network error. Please check your connection and try again.';
+      showModal('errorModal');
+    } finally {
+        uploadBtn.disabled = !cropper;
+        uploadBtn.textContent = 'Upload';
+    }
+  });
+
 
   // Update Profile Form Handler
   const updateForm = document.getElementById('updateProfileForm');

@@ -34,6 +34,8 @@
               crossorigin="anonymous">
         <!-- Stylesheet -->
         <link rel="stylesheet" href="{{ url_for('static', path='css/main.css') }}">
+        {% block styles %}
+        {% endblock styles %}
         <!-- Set a theme color that matches your website's primary color -->
         <meta name="theme-color" content="#527c9f">
         <!-- Favicon for all browsers -->
