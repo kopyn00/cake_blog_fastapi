@@ -4,6 +4,10 @@ __pycache__/
 *.py[cod]
 *.pyo
 
+# Database
+*.db
+*.sqlite3
+
 # Virtual environment
 .venv/
 venv/
@@ -11,6 +15,10 @@ venv/
 # Environment variables
 .env
 .env.*
+
+# Media and uploads
+populate_images/
+media/profile_pics/*
 
 # IDE
 .vscode/
@@ -20,11 +28,10 @@ venv/
 .DS_Store
 Thumbs.db
 
-# Database
-*.db
-*.sqlite3
-
 # Logs
 *.log
+
+# Scripts
+populate_db.py
 
 EOF
