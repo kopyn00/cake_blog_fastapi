@@ -6,7 +6,7 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy import select
 
-from tests.conftest import auth_header, create_test_user, login_user
+from tests.helpers import auth_header, create_test_user, login_user
 
 
 @pytest.mark.anyio
@@ -160,7 +160,7 @@ async def test_upload_profile_picture_invalid_type(
 async def test_upload_profile_picture_wrong_user(
     client: AsyncClient,
 ):
-    user1 = await create_test_user(
+    await create_test_user(
         client,
         username="user1",
         email="user1@example.com",

@@ -15,6 +15,7 @@ venv/
 # Environment variables
 .env
 .env.*
+!.env.example
 
 # Media and uploads
 populate_images/

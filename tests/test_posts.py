@@ -1,7 +1,7 @@
 import pytest
 from httpx import AsyncClient
 
-from tests.conftest import auth_header, create_test_user, login_user
+from tests.helpers import auth_header, create_test_user, login_user
 
 
 @pytest.mark.anyio
