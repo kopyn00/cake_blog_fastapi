@@ -1,0 +1,55 @@
+
+name: Cake Blog Deploy
+
+on:
+  workflow_run:
+    workflows: ["Cake Blog Docker"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to Raspberry Pi
+
+    if: >-
+      github.event.workflow_run.conclusion == 'success'
+
+    runs-on: [self-hosted, Linux, ARM64]
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout deployed commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Deploy application
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          DEPLOY_DIR="$HOME/docker/cake-blog"
+
+          test -f "$DEPLOY_DIR/.env"
+
+          echo "$GHCR_TOKEN" | docker login ghcr.io \
+            --username kopyn00 \
+            --password-stdin
+
+          cp docker-compose.yaml "$DEPLOY_DIR/docker-compose.yaml"
+
+          cd "$DEPLOY_DIR"
+
+          docker compose pull
+
+          docker compose run --rm --no-deps app alembic upgrade head
+
+          docker compose up -d --remove-orphans
+
+          docker compose ps
+
+          docker image prune -f
