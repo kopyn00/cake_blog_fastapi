@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 # Load test environment before importing application modules.
 ENV_FILE = Path(__file__).resolve().parent.parent / ".env.test"
-load_dotenv(ENV_FILE, override=True)
+load_dotenv(ENV_FILE, override=False)
 
 import boto3
 import pytest

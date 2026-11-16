@@ -1,0 +1,56 @@
+
+name: Cake Blog CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: cake_blog_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install dependencies
+        run: uv sync --locked --all-groups
+
+      - name: Run tests
+        run: uv run pytest -v
+        env:
+            DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/cake_blog_test
+            SECRET_KEY: ci-test-secret-key
+            S3_BUCKET_NAME: cake-blog-test
+          
+            S3_ACCESS_KEY_ID: testing
+            S3_SECRET_ACCESS_KEY: testing
+            S3_REGION: eu-north-1
+          
+            AWS_ACCESS_KEY_ID: testing
+            AWS_SECRET_ACCESS_KEY: testing
+            AWS_DEFAULT_REGION: eu-north-1
