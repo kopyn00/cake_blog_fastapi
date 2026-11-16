@@ -1,0 +1,30 @@
+
+services:
+  app:
+    image: ghcr.io/kopyn00/cake_blog_fastapi:latest
+    container_name: cake-blog
+    restart: unless-stopped
+
+    env_file:
+      - .env
+
+    ports:
+      - "8000:8000"
+
+    networks:
+      - cake-prod-db_default
+
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+networks:
+  cake-prod-db_default:
+    external: true
