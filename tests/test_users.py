@@ -1,3 +1,4 @@
+import os
 from io import BytesIO
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
@@ -128,7 +129,9 @@ async def test_upload_profile_picture(client: AsyncClient, mocked_aws):
     assert data["image_file"].endswith(".jpg")
     assert "s3" in data["image_path"]
 
-    s3_objects = mocked_aws.list_objects_v2(Bucket="test-bucket")
+    s3_objects = mocked_aws.list_objects_v2(
+        Bucket=os.environ["S3_BUCKET_NAME"],
+    )
     assert "Contents" in s3_objects
     assert len(s3_objects["Contents"]) == 1
     assert s3_objects["Contents"][0]["Key"].endswith(data["image_file"])
